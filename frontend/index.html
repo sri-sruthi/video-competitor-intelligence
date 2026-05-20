@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video Competitor Intelligence</title>
+  <style>
+    /* ── Reset & base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #132238;
+      --ink: #20324A;
+      --blue: #2D6BEA;
+      --teal: #148C82;
+      --dark: #1E293B;
+      --grey: #5F748B;
+      --light: #F7F2EA;
+      --soft: #EEF3F7;
+      --amber: #D97706;
+      --green: #15803D;
+      --red: #DC2626;
+      --white: #FFFFFF;
+      --border: #D8E1EA;
+      --paper: #FCFAF6;
+      --muted-teal: #0B7A77;
+      --shadow: 0 18px 50px rgba(12, 28, 49, 0.12);
+    }
+    html, body { height: 100%; font-family: 'Aptos', 'Avenir Next', 'Segoe UI', sans-serif; background:
+      radial-gradient(circle at top left, rgba(20,140,130,.08), transparent 24%),
+      linear-gradient(180deg, #fffdf9 0%, var(--paper) 52%, #f7f3ec 100%);
+      color: var(--dark); }
+
+    /* ── Layout ───────────────────────────────────────────────────── */
+    .app { min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* ── Header ──────────────────────────────────────────────────── */
+    header {
+      background: rgba(19,34,56,.92);
+      backdrop-filter: blur(14px);
+      padding: 1.1rem 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,.16);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    header .logo { width: 36px; height: 36px; }
+    header h1 { font-size: 1.25rem; font-weight: 700; color: var(--white); letter-spacing: -.01em; }
+    header .badge {
+      margin-left: auto;
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--teal);
+      background: rgba(20,184,166,.12);
+      border: 1px solid rgba(20,184,166,.35);
+      border-radius: 999px;
+      padding: .2rem .75rem;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    /* ── Hero ─────────────────────────────────────────────────────── */
+    .hero {
+      background:
+        radial-gradient(circle at 20% 15%, rgba(20,184,166,.18), transparent 22%),
+        radial-gradient(circle at 85% 0%, rgba(45,107,234,.22), transparent 26%),
+        linear-gradient(135deg, var(--navy) 0%, #18385a 100%);
+      padding: 4.25rem 2.5rem 3rem;
+      text-align: center;
+      color: var(--white);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero h2 { font-family: 'Iowan Old Style', 'Palatino Linotype', 'Georgia', serif; font-size: 2.7rem; font-weight: 700; margin-bottom: .9rem; letter-spacing: -.03em; line-height: 1.05; }
+    .hero p { font-size: 1.03rem; color: rgba(255,255,255,.78); max-width: 680px; margin: 0 auto 1.3rem; line-height: 1.7; }
+    .hero-pills { display:flex; justify-content:center; gap:.7rem; flex-wrap:wrap; margin: 0 auto 2rem; max-width: 760px; }
+    .hero-pill {
+      padding:.48rem .9rem;
+      border-radius:999px;
+      background: rgba(255,255,255,.1);
+      border:1px solid rgba(255,255,255,.16);
+      font-size:.8rem;
+      letter-spacing:.02em;
+      color: rgba(255,255,255,.9);
+    }
+
+    /* ── Form card ─────────────────────────────────────────────────── */
+    .form-card {
+      background: rgba(255,255,255,.96);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 2rem 2.25rem;
+      border: 1px solid rgba(255,255,255,.3);
+    }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-group { display: flex; flex-direction: column; gap: .4rem; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { font-size: .82rem; font-weight: 600; color: var(--grey); text-transform: uppercase; letter-spacing: .05em; }
+    .form-group input {
+      padding: .7rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: .95rem;
+      color: var(--dark);
+      background: var(--paper);
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+    }
+    .form-group input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+    .form-group input::placeholder { color: #9BB0C4; }
+    .btn-generate {
+      width: 100%;
+      margin-top: 1.4rem;
+      padding: .9rem 1.5rem;
+      background: linear-gradient(135deg, var(--blue), var(--muted-teal));
+      color: var(--white);
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      letter-spacing: .01em;
+      transition: opacity .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 14px 30px rgba(11,122,119,.18);
+    }
+    .btn-generate:hover:not(:disabled) { opacity: .94; transform: translateY(-2px); box-shadow: 0 18px 34px rgba(11,122,119,.22); }
+    .btn-generate:disabled { opacity: .55; cursor: not-allowed; }
+
+    /* ── Main content ─────────────────────────────────────────────── */
+    main { flex: 1; padding: 2.5rem; max-width: 1100px; margin: 0 auto; width: 100%; }
+
+    /* ── Progress section ─────────────────────────────────────────── */
+    #progress-section { display: none; margin-bottom: 2rem; }
+    .progress-card {
+      background: var(--white);
+      border-radius: 18px;
+      padding: 1.75rem 2rem;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .progress-header h3 { font-size: 1rem; font-weight: 700; color: var(--dark); }
+    .progress-pct { font-size: 1rem; font-weight: 700; color: var(--blue); }
+    .progress-bar-track {
+      height: 8px;
+      background: var(--soft);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--teal));
+      border-radius: 99px;
+      transition: width .4s ease;
+      width: 0%;
+    }
+    .progress-status { font-size: .9rem; color: var(--grey); min-height: 1.4em; }
+    .progress-steps { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+    .step-badge {
+      font-size: .75rem;
+      padding: .25rem .65rem;
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--grey);
+      font-weight: 500;
+      transition: all .3s;
+    }
+    .step-badge.active { background: rgba(37,99,235,.12); color: var(--blue); font-weight: 700; }
+    .step-badge.done { background: rgba(20,184,166,.12); color: var(--muted-teal); }
+
+    /* ── Error banner ─────────────────────────────────────────────── */
+    #error-banner {
+      display: none;
+      background: rgba(239,68,68,.08);
+      border: 1.5px solid rgba(239,68,68,.3);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      color: var(--red);
+      font-size: .93rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── Report section ───────────────────────────────────────────── */
+    #report-section { display: none; }
+
+    /* ── Report header ────────────────────────────────────────────── */
+    .report-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .report-header h2 { font-size: 1.5rem; font-weight: 700; color: var(--navy); }
+    .report-header p { font-size: .88rem; color: var(--grey); margin-top: .25rem; }
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+      padding: .75rem 1.5rem;
+      background: var(--navy);
+      color: var(--white);
+      font-size: .9rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 9px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .2s, transform .1s;
+      white-space: nowrap;
+    }
+    .btn-download:hover { background: #1a3050; transform: translateY(-1px); }
+    .btn-download svg { width: 16px; height: 16px; }
+
+    .insight-ribbon {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: .9rem;
+      margin-bottom: 1.5rem;
+    }
+    .insight-chip {
+      background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(255,255,255,.88));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 1.05rem;
+      box-shadow: 0 8px 24px rgba(19,34,56,.06);
+    }
+    .insight-chip-label { font-size:.73rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color: var(--muted-teal); margin-bottom:.35rem; }
+    .insight-chip-value { font-size:1rem; font-weight:700; color: var(--navy); line-height:1.35; }
+
+    /* ── Company scorecards ───────────────────────────────────────── */
+    .scorecards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .scorecard {
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.92));
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      transition: box-shadow .2s, transform .2s;
+      box-shadow: 0 10px 24px rgba(19,34,56,.05);
+    }
+    .scorecard:hover { box-shadow: 0 18px 32px rgba(19,34,56,.11); transform: translateY(-3px); }
+    .scorecard-rank { font-size: .72rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--teal); margin-bottom: .35rem; }
+    .scorecard-name { font-size: 1rem; font-weight: 700; color: var(--navy); margin-bottom: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .scorecard-metric { display: flex; justify-content: space-between; align-items: center; padding: .3rem 0; border-bottom: 1px solid var(--soft); font-size: .83rem; }
+    .scorecard-metric:last-child { border-bottom: none; }
+    .metric-label { color: var(--grey); }
+    .metric-value { font-weight: 700; color: var(--dark); }
+    .scorecard-trend { margin-top: .65rem; font-size: .78rem; font-weight: 700; }
+    .scorecard-trend.growing { color: var(--green); }
+    .scorecard-trend.declining { color: var(--red); }
+    .scorecard-trend.stable { color: var(--grey); }
+    .rpi-bar { height: 6px; background: var(--soft); border-radius: 99px; overflow: hidden; margin-top: .75rem; }
+    .rpi-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--blue), var(--teal)); }
+
+    /* ── Section blocks ───────────────────────────────────────────── */
+    .section-block {
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.94));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.75rem 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 10px 28px rgba(19,34,56,.05);
+      animation: riseIn .45s ease both;
+    }
+    .section-block h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+    }
+    .section-block h3 .icon { font-size: 1.1rem; }
+
+    /* ── Executive summary ────────────────────────────────────────── */
+    .exec-text { font-size: .95rem; line-height: 1.75; color: var(--dark); white-space: pre-wrap; }
+    .exec-text p, .gap-text p, .action-text p { margin-bottom: .85rem; }
+    .exec-text p:last-child, .gap-text p:last-child, .action-text p:last-child { margin-bottom: 0; }
+    .exec-intro { font-size: .98rem; line-height: 1.7; margin-bottom: 1rem; }
+    .exec-bullets { display:grid; gap:.65rem; margin: 1rem 0; }
+    .exec-bullet {
+      padding: .8rem .9rem;
+      border-radius: 12px;
+      background: var(--soft);
+      border: 1px solid var(--border);
+      font-size: .9rem;
+      line-height: 1.55;
+    }
+    .exec-meaning {
+      margin-top: 1rem;
+      padding: .95rem 1rem;
+      border-left: 4px solid var(--teal);
+      background: rgba(20,140,130,.07);
+      border-radius: 10px;
+      line-height: 1.65;
+    }
+    .funnel-insight {
+      margin-bottom: 1rem;
+      padding: .95rem 1rem;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(20,140,130,.08), rgba(255,255,255,.96));
+      border: 1px solid var(--border);
+      line-height: 1.65;
+      color: var(--dark);
+    }
+    .funnel-insight strong { color: var(--muted-teal); }
+
+    /* ── Top videos ───────────────────────────────────────────────── */
+    .videos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.1rem; }
+    .video-card {
+      background: var(--soft);
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      border: 1px solid var(--border);
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .video-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(19,34,56,.08); }
+    .video-company { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--teal); margin-bottom: .35rem; }
+    .video-title { font-size: .9rem; font-weight: 600; color: var(--navy); margin-bottom: .6rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .video-stats { display: flex; gap: .75rem; font-size: .8rem; color: var(--grey); flex-wrap: wrap; }
+    .video-stat { display: flex; align-items: center; gap: .25rem; }
+    .video-meta { margin-top: .6rem; font-size: .78rem; color: var(--grey); display: flex; gap: .5rem; flex-wrap: wrap; }
+    .video-expander {
+      margin-top: .7rem;
+      border-top: 1px solid rgba(216,225,234,.85);
+      padding-top: .65rem;
+    }
+    .video-expander summary {
+      list-style: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      font-size: .66rem;
+      font-weight: 700;
+      color: var(--muted-teal);
+      gap: .35rem;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+    .video-expander summary::-webkit-details-marker { display:none; }
+    .video-expander-body { margin-top: .6rem; display:grid; gap:.5rem; }
+    .video-why { font-size: .8rem; line-height: 1.55; color: var(--muted-teal); }
+    .video-next { font-size: .78rem; line-height: 1.45; color: var(--dark); }
+    .video-link { margin-top: .65rem; display: inline-flex; align-items: center; gap: .3rem; font-size: .8rem; font-weight: 700; color: var(--blue); text-decoration: none; }
+    .video-link:hover { text-decoration: underline; }
+
+    /* ── Recommendations ──────────────────────────────────────────── */
+    .rec-list { display: flex; flex-direction: column; gap: .9rem; }
+    .rec-group-title {
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted-teal);
+      margin: .35rem 0 .15rem;
+    }
+    .rec-item {
+      background: linear-gradient(180deg, rgba(247,242,234,.9), rgba(255,255,255,.94));
+      border-radius: 14px;
+      border-left: 4px solid var(--blue);
+      box-shadow: 0 10px 22px rgba(19,34,56,.04);
+      overflow: hidden;
+    }
+    .rec-item.high { border-left-color: var(--red); }
+    .rec-item summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      padding: 1rem 1.1rem;
+    }
+    .rec-item summary::-webkit-details-marker { display:none; }
+    .rec-num {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: var(--white);
+      font-size: .83rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .rec-item.high .rec-num { background: var(--red); }
+    .rec-content { flex: 1; }
+    .rec-title { font-size: .93rem; font-weight: 700; color: var(--navy); margin-bottom: .3rem; }
+    .rec-action { font-size: .87rem; color: var(--dark); margin-bottom: .25rem; line-height: 1.5; }
+    .rec-summary-note { font-size: .8rem; color: var(--grey); line-height: 1.45; }
+    .rec-item[open] .rec-summary-note { display: none; }
+    .rec-body {
+      padding: 0 1.1rem 1rem 3.55rem;
+      border-top: 1px solid rgba(216,225,234,.7);
+    }
+    .rec-rationale { font-size: .82rem; color: var(--grey); line-height: 1.5; margin-top:.18rem; }
+    .rec-priority {
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: .15rem .55rem;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+    .rec-priority.high { background: rgba(239,68,68,.1); color: var(--red); }
+    .rec-priority.medium { background: rgba(245,158,11,.1); color: var(--amber); }
+
+    /* ── Action plan ──────────────────────────────────────────────── */
+    .action-accordion { display:flex; flex-direction:column; gap:.8rem; }
+    .action-phase {
+      border:1px solid var(--border);
+      border-radius:14px;
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,242,234,.8));
+      overflow:hidden;
+    }
+    .action-phase summary {
+      list-style:none;
+      cursor:pointer;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding: 1rem 1.05rem;
+      font-weight:700;
+      color: var(--navy);
+    }
+    .action-phase summary::-webkit-details-marker { display:none; }
+    .action-phase-body {
+      padding: 0 1.05rem 1rem;
+      font-size:.92rem;
+      line-height:1.75;
+      color: var(--dark);
+    }
+    .action-phase-kpi {
+      margin-top:.7rem;
+      font-size:.8rem;
+      color: var(--muted-teal);
+      font-weight:700;
+      letter-spacing:.02em;
+    }
+
+    /* ── Gap analysis ─────────────────────────────────────────────── */
+    .gap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .9rem; margin-bottom: 1.25rem; }
+    .gap-card {
+      background: var(--soft);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .9rem 1rem;
+    }
+    .gap-topic { font-size: .9rem; font-weight: 700; color: var(--navy); margin-bottom: .4rem; }
+    .gap-score { font-size: .82rem; color: var(--teal); font-weight: 600; }
+    .gap-type { font-size: .78rem; color: var(--grey); margin-top: .2rem; }
+    .gap-expander {
+      margin-top: .65rem;
+      border-top: 1px solid rgba(216,225,234,.85);
+      padding-top: .55rem;
+    }
+    .gap-expander summary {
+      list-style: none;
+      cursor: pointer;
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--muted-teal);
+    }
+    .gap-expander summary::-webkit-details-marker { display:none; }
+    .gap-expander-body { margin-top: .5rem; display:grid; gap:.35rem; }
+    .gap-detail { font-size: .79rem; line-height: 1.55; color: var(--dark); margin-top: .35rem; }
+    .gap-text { font-size: .92rem; line-height: 1.7; color: var(--dark); white-space: pre-wrap; }
+    .gap-summary {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,242,234,.82));
+      padding: 1rem 1.05rem;
+    }
+    .gap-summary-intro { font-size: .93rem; line-height: 1.65; margin-bottom: .8rem; color: var(--dark); }
+    .gap-summary-list { display:grid; gap:.55rem; margin-bottom:.8rem; }
+    .gap-summary-item {
+      background: var(--soft);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .72rem .8rem;
+      font-size: .84rem;
+      line-height: 1.55;
+      color: var(--dark);
+    }
+    .gap-summary-close {
+      padding: .8rem .9rem;
+      border-left: 4px solid var(--teal);
+      background: rgba(20,140,130,.07);
+      border-radius: 10px;
+      font-size: .85rem;
+      line-height: 1.6;
+      color: var(--dark);
+    }
+    .gap-empty { font-size: .9rem; color: var(--grey); }
+
+    /* ── Funnel table ─────────────────────────────────────────────── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    .data-table th { background: var(--navy); color: var(--white); padding: .7rem 1rem; text-align: left; font-size: .8rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+    .data-table th:first-child { border-radius: 8px 0 0 0; }
+    .data-table th:last-child { border-radius: 0 8px 0 0; }
+    .data-table td { padding: .65rem 1rem; border-bottom: 1px solid var(--border); color: var(--dark); }
+    .data-table tr:nth-child(even) td { background: var(--soft); }
+    .data-table tr:last-child td { border-bottom: none; }
+
+    /* ── Footer ───────────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: .8rem;
+      color: var(--grey);
+      border-top: 1px solid var(--border);
+      background: rgba(255,255,255,.8);
+    }
+
+    /* ── Spinner ──────────────────────────────────────────────────── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(255,255,255,.3);
+      border-top-color: var(--white);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Responsive ───────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .hero { padding: 2rem 1.25rem 1.5rem; }
+      .hero h2 { font-size: 2rem; }
+      .form-card { padding: 1.5rem 1.25rem; }
+      main { padding: 1.25rem; }
+      .section-block { padding: 1.25rem; }
+      .report-header { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <svg class="logo" viewBox="0 0 36 36" fill="none">
+      <circle cx="18" cy="18" r="18" fill="#14B8A6" opacity=".18"/>
+      <polygon points="14,11 14,25 27,18" fill="#14B8A6"/>
+    </svg>
+    <h1>Video Competitor Intelligence</h1>
+    <span class="badge">Powered by YouTube + AI</span>
+  </header>
+
+  <!-- Hero + Form -->
+  <div class="hero">
+    <h2>See how your video strategy stacks up and exactly what to do next</h2>
+    <p>Benchmark your channel against the market, understand what the numbers mean for your growth, and leave with a boardroom-ready PowerPoint plus a practical action plan.</p>
+    <div class="hero-pills">
+      <span class="hero-pill">Client growth intelligence</span>
+      <span class="hero-pill">Executive-ready storytelling</span>
+      <span class="hero-pill">Real YouTube data, not guesswork</span>
+    </div>
+    <div class="form-card">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Your Company *</label>
+          <input id="company" type="text" placeholder="e.g. Mypromovideos" autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label>Competitor 1</label>
+          <input id="c1" type="text" placeholder="e.g. Explain Ninja" autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label>Competitor 2</label>
+          <input id="c2" type="text" placeholder="e.g. Yum Yum Videos" autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label>Competitor 3</label>
+          <input id="c3" type="text" placeholder="e.g. Demo Duck" autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label>Competitor 4</label>
+          <input id="c4" type="text" placeholder="e.g. Vidico" autocomplete="off" />
+        </div>
+      </div>
+      <button class="btn-generate" id="btn-generate" onclick="startGeneration()">
+        Generate Intelligence Report
+      </button>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <main>
+
+    <!-- Error banner -->
+    <div id="error-banner"></div>
+
+    <!-- Progress section -->
+    <div id="progress-section">
+      <div class="progress-card">
+        <div class="progress-header">
+          <h3>Generating Report…</h3>
+          <span class="progress-pct" id="progress-pct">0%</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progress-bar"></div>
+        </div>
+        <div class="progress-status" id="progress-status">Initialising…</div>
+        <div class="progress-steps" id="progress-steps">
+          <span class="step-badge" data-step="youtube">YouTube Data</span>
+          <span class="step-badge" data-step="analytics">Analytics</span>
+          <span class="step-badge" data-step="clustering">Topic Clustering</span>
+          <span class="step-badge" data-step="trends">Trends</span>
+          <span class="step-badge" data-step="rpi">RPI Scores</span>
+          <span class="step-badge" data-step="ai">AI Narratives</span>
+          <span class="step-badge" data-step="pptx">Building PPTX</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Report section -->
+    <div id="report-section">
+
+      <div class="report-header">
+        <div>
+          <h2 id="report-title">Client Growth Intelligence Report</h2>
+          <p id="report-subtitle">Full report with 16 slides ready to download</p>
+        </div>
+        <a id="btn-download" class="btn-download" href="#" download>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download PowerPoint
+        </a>
+      </div>
+
+      <div class="insight-ribbon" id="insight-ribbon"></div>
+
+      <!-- Scorecards -->
+      <div class="scorecards" id="scorecards"></div>
+
+      <!-- Executive Summary -->
+      <div class="section-block">
+        <h3><span class="icon">📋</span> Executive Summary</h3>
+        <div class="exec-text" id="exec-summary"></div>
+      </div>
+
+      <!-- Top Videos -->
+      <div class="section-block">
+        <h3><span class="icon">🎬</span> Top Performing Videos</h3>
+        <div class="videos-grid" id="top-videos"></div>
+      </div>
+
+      <!-- Funnel Analysis -->
+      <div class="section-block">
+        <h3><span class="icon">🎯</span> Content Funnel Distribution</h3>
+        <div class="funnel-insight" id="funnel-insight"></div>
+        <div style="overflow-x:auto">
+          <table class="data-table" id="funnel-table">
+            <thead>
+              <tr>
+                <th>Company</th>
+                <th>Funnel Type</th>
+                <th>Awareness %</th>
+                <th>Consideration %</th>
+                <th>Conversion %</th>
+                <th>Consistency</th>
+                <th>RPI Score</th>
+              </tr>
+            </thead>
+            <tbody id="funnel-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Strategic Whitespace Opportunities -->
+      <div class="section-block">
+        <h3><span class="icon">🔍</span> Strategic Whitespace Opportunities</h3>
+        <div class="gap-grid" id="gap-grid"></div>
+        <div class="gap-text" id="gap-analysis"></div>
+      </div>
+
+      <!-- Recommendations -->
+      <div class="section-block">
+        <h3 id="recommendations-title"><span class="icon">💡</span> Strategic Recommendations</h3>
+        <div class="rec-list" id="rec-list"></div>
+      </div>
+
+      <!-- Action Plan -->
+      <div class="section-block">
+        <h3><span class="icon">🗓️</span> 90-Day Action Plan</h3>
+        <div class="action-accordion" id="action-plan"></div>
+      </div>
+
+    </div><!-- /#report-section -->
+
+  </main>
+
+  <footer>
+    Video Competitor Intelligence · Data sourced from YouTube Data API v3 · AI analysis by Google Gemini
+  </footer>
+</div>
+
+<script>
+  let currentReportId = null;
+
+  // ── Step detection ────────────────────────────────────────────────
+  function detectStep(status) {
+    const s = status.toLowerCase();
+    if (s.includes('youtube') || s.includes('searching') || s.includes('found') || s.includes('fetching videos')) return 'youtube';
+    if (s.includes('analys') || s.includes('performance')) return 'analytics';
+    if (s.includes('clust') || s.includes('topic')) return 'clustering';
+    if (s.includes('trend') || s.includes('opportunity')) return 'trends';
+    if (s.includes('rpi') || s.includes('relative performance')) return 'rpi';
+    if (s.includes('ai') || s.includes('execut') || s.includes('strategy') || s.includes('gap') || s.includes('recommend') || s.includes('action plan') || s.includes('slide') || s.includes('generating')) return 'ai';
+    if (s.includes('powerpoint') || s.includes('pptx') || s.includes('building') || s.includes('saving')) return 'pptx';
+    return null;
+  }
+
+  function updateStepBadges(activeStep) {
+    const steps = ['youtube','analytics','clustering','trends','rpi','ai','pptx'];
+    const stepIdx = steps.indexOf(activeStep);
+    document.querySelectorAll('.step-badge').forEach(el => {
+      const elStep = el.getAttribute('data-step');
+      const elIdx = steps.indexOf(elStep);
+      el.classList.remove('active','done');
+      if (elStep === activeStep) el.classList.add('active');
+      else if (elIdx < stepIdx) el.classList.add('done');
+    });
+  }
+
+  // ── Start generation ──────────────────────────────────────────────
+  function startGeneration() {
+    const company = document.getElementById('company').value.trim();
+    if (!company) {
+      showError('Please enter your company name.');
+      return;
+    }
+    const competitors = [
+      document.getElementById('c1').value.trim(),
+      document.getElementById('c2').value.trim(),
+      document.getElementById('c3').value.trim(),
+      document.getElementById('c4').value.trim(),
+    ].filter(Boolean).join(',');
+
+    hideError();
+    showProgress();
+    hideReport();
+    disableForm(true);
+
+    const url = `/generate?company=${encodeURIComponent(company)}&competitors=${encodeURIComponent(competitors)}`;
+    const es = new EventSource(url);
+
+    es.onmessage = function(e) {
+      try {
+        const data = JSON.parse(e.data);
+        const progress = data.progress || 0;
+        const status = data.status || '';
+
+        // Update bar
+        document.getElementById('progress-bar').style.width = progress + '%';
+        document.getElementById('progress-pct').textContent = progress + '%';
+        document.getElementById('progress-status').textContent = status;
+
+        const step = detectStep(status);
+        if (step) updateStepBadges(step);
+
+        if (status === 'complete') {
+          es.close();
+          document.getElementById('progress-bar').style.width = '100%';
+          document.getElementById('progress-pct').textContent = '100%';
+          document.getElementById('progress-status').textContent = 'Report ready!';
+          updateStepBadges('pptx');
+          document.querySelectorAll('.step-badge').forEach(el => el.classList.add('done'));
+
+          currentReportId = data.report_id;
+          setTimeout(() => {
+            hideProgress();
+            fetchAndDisplayReport(data.report_id);
+          }, 800);
+
+        } else if (status === 'error') {
+          es.close();
+          disableForm(false);
+          hideProgress();
+          showError(data.message || 'An error occurred during report generation.');
+        }
+      } catch (err) {
+        console.error('SSE parse error', err);
+      }
+    };
+
+    es.onerror = function() {
+      es.close();
+      disableForm(false);
+      hideProgress();
+      showError('Connection error. Please check that the server is running and try again.');
+    };
+  }
+
+  // ── Fetch and render report ────────────────────────────────────────
+  async function fetchAndDisplayReport(reportId) {
+    try {
+      const res = await fetch(`/report/${reportId}`);
+      if (!res.ok) throw new Error('Report not found');
+      const data = await res.json();
+      renderReport(data, reportId);
+    } catch (err) {
+      showError('Could not load the report data. The PowerPoint file is still available for download.');
+      // Still show download button
+      document.getElementById('btn-download').href = `/download/${reportId}`;
+      document.getElementById('report-section').style.display = 'block';
+    }
+  }
+
+  function renderReport(data, reportId) {
+    const companies = data.companies || [];
+    const companyData = data.company_data || {};
+    const rpiScores = data.rpi_scores || {};
+    const seoScores = data.seo_scores || {};
+    const targetCompany = data.target_company || companies[0] || 'the target company';
+    const oppScores = data.opportunity_scores || [];
+    const slideInterpretations = data.slide_interpretations || {};
+
+    // Title
+    document.getElementById('report-title').textContent = `${targetCompany} — Client Growth Intelligence`;
+    document.getElementById('report-subtitle').textContent = `${data.report_date || ''} · ${companies.length} companies analysed · ${data.slide_count || 16}-slide PowerPoint with action plan`;
+    document.getElementById('btn-download').href = `/download/${reportId}`;
+
+    // Insight ribbon
+    const insightRibbon = document.getElementById('insight-ribbon');
+    const sortedCompanies = [...companies].sort((a,b) =>
+      (rpiScores[a]?.rank || 99) - (rpiScores[b]?.rank || 99)
+    );
+    const leader = sortedCompanies[0];
+    const topOpportunity = oppScores[0];
+    insightRibbon.innerHTML = `
+      <div class="insight-chip">
+        <div class="insight-chip-label">Current benchmark leader</div>
+        <div class="insight-chip-value">${escHtml(leader || '—')} ${leader ? `at ${(rpiScores[leader]?.rpi_score || 0).toFixed(1)}/100` : ''}</div>
+      </div>
+      <div class="insight-chip">
+        <div class="insight-chip-label">Primary focus for ${escHtml(targetCompany)}</div>
+        <div class="insight-chip-value">${escHtml((data.recommendations?.[0]?.title) || 'Clarify the first high-value move')}</div>
+      </div>
+      <div class="insight-chip">
+        <div class="insight-chip-label">Top whitespace signal</div>
+        <div class="insight-chip-value">${topOpportunity ? `${escHtml(prettyLabel(topOpportunity.topic || '—'))} · ${(topOpportunity.opportunity_score || 0).toFixed(0)}/100` : 'Use the recommendation stack to guide the first test'}</div>
+      </div>
+    `;
+
+    // Scorecards
+    const scorecards = document.getElementById('scorecards');
+    scorecards.innerHTML = '';
+    sortedCompanies.forEach(c => {
+      const cd = companyData[c] || {};
+      const rpi = rpiScores[c] || {};
+      const seo = seoScores[c] || {};
+      const rpiScore = rpi.rpi_score || 0;
+      const rank = rpi.rank || '—';
+      const grade = rpiGrade(rpiScore);
+      const slope = cd.engagement_trend_slope || 0;
+      const trendLabel = slope > 0.005 ? '↑ Growing' : slope < -0.005 ? '↓ Declining' : '→ Stable';
+      const trendClass = slope > 0.005 ? 'growing' : slope < -0.005 ? 'declining' : 'stable';
+      const el = document.createElement('div');
+      el.className = 'scorecard';
+      el.innerHTML = `
+        <div class="scorecard-rank">Rank #${rank} · Grade ${grade}</div>
+        <div class="scorecard-name" title="${c}">${c}</div>
+        <div class="scorecard-metric">
+          <span class="metric-label">RPI Score</span>
+          <span class="metric-value">${rpiScore.toFixed(1)}</span>
+        </div>
+        <div class="scorecard-metric">
+          <span class="metric-label">Engagement</span>
+          <span class="metric-value">${(cd.avg_engagement_rate || 0).toFixed(3)}%</span>
+        </div>
+        <div class="scorecard-metric">
+          <span class="metric-label">Consistency</span>
+          <span class="metric-value">${(cd.consistency_score || 0).toFixed(1)}/100</span>
+        </div>
+        <div class="scorecard-metric">
+          <span class="metric-label">SEO Score</span>
+          <span class="metric-value">${(seo.seo_score || 0).toFixed(1)}/100</span>
+        </div>
+        <div class="scorecard-metric">
+          <span class="metric-label">Audience mix</span>
+          <span class="metric-value">${cd.funnel_label || '—'}</span>
+        </div>
+        <div class="scorecard-metric">
+          <span class="metric-label">Avg Upload Gap</span>
+          <span class="metric-value">${formatGapDays(cd.mean_gap_days || 0)}</span>
+        </div>
+        <div class="scorecard-trend ${trendClass}">${trendLabel}</div>
+        <div class="rpi-bar"><div class="rpi-bar-fill" style="width:${rpiScore}%"></div></div>
+      `;
+      scorecards.appendChild(el);
+    });
+
+    // Executive summary
+    document.getElementById('exec-summary').innerHTML = formatExecutiveSummaryHtml(
+      data.executive_summary || 'No summary generated.'
+    );
+
+    // Top videos
+    const videoGrid = document.getElementById('top-videos');
+    videoGrid.innerHTML = '';
+    companies.forEach(c => {
+      const cd = companyData[c] || {};
+      const topVids = (cd.top_videos || []).slice(0, 2);
+      topVids.forEach(v => {
+        const likeCount = Number(v.like_count || 0);
+        const commentCount = Number(v.comment_count || 0);
+        const erValue = ((likeCount + commentCount) / Math.max(Number(v.view_count || 0), 1) * 100);
+        const er = formatEngagementRate(erValue);
+        const el = document.createElement('div');
+        el.className = 'video-card';
+        const url = v.video_id ? `https://www.youtube.com/watch?v=${v.video_id}` : null;
+        const meta = [];
+        const published = formatPublishedDate(v.published_at || '');
+        const duration = formatDuration(v.duration_seconds || 0);
+        const viewsPerDay = computeViewsPerDay(v.view_count || 0, v.published_at || '');
+        const whyWorked = inferVideoWhyWorked(v);
+        const nextMove = inferVideoNextMove(v);
+        if (published) meta.push(published);
+        if (duration) meta.push(duration);
+        if (viewsPerDay !== null) meta.push(`${viewsPerDay.toFixed(1)} views/day`);
+        el.innerHTML = `
+          <div class="video-company">${c}</div>
+          <div class="video-title">${url ? `<a href="${url}" target="_blank" style="color:inherit;text-decoration:underline">${escHtml(v.title || '')}</a>` : escHtml(v.title || '')}</div>
+          <div class="video-stats">
+            <span class="video-stat">👁 ${fmtNum(v.view_count || 0)}</span>
+            <span class="video-stat">♥ ${fmtNum(likeCount)}</span>
+            <span class="video-stat">ER: ${er}</span>
+          </div>
+          ${meta.length ? `<div class="video-meta">${meta.map(item => `<span>${escHtml(item)}</span>`).join('')}</div>` : ''}
+          <details class="video-expander">
+            <summary>Details</summary>
+            <div class="video-expander-body">
+              <div class="video-why"><strong>Why it likely worked:</strong> ${escHtml(whyWorked)}</div>
+              <div class="video-next"><strong>Next move:</strong> ${escHtml(nextMove)}</div>
+            </div>
+          </details>
+          ${url ? `<a class="video-link" href="${url}" target="_blank" rel="noopener">Watch on YouTube</a>` : ''}
+        `;
+        videoGrid.appendChild(el);
+      });
+    });
+
+    // Funnel table
+    document.getElementById('funnel-insight').innerHTML = buildFunnelInsight(
+      companies,
+      companyData,
+      rpiScores,
+      targetCompany,
+      slideInterpretations
+    );
+    const tbody = document.getElementById('funnel-tbody');
+    tbody.innerHTML = '';
+    companies.forEach(c => {
+      const cd = companyData[c] || {};
+      const rpi = rpiScores[c] || {};
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${escHtml(c)}</strong></td>
+        <td>${cd.funnel_label || '—'}</td>
+        <td>${(cd.tofu_pct || 0).toFixed(1)}%</td>
+        <td>${(cd.mofu_pct || 0).toFixed(1)}%</td>
+        <td>${(cd.bofu_pct || 0).toFixed(1)}%</td>
+        <td>${(cd.consistency_score || 0).toFixed(1)}</td>
+        <td>${(rpi.rpi_score || 0).toFixed(1)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Gap opportunities
+    const gapGrid = document.getElementById('gap-grid');
+    gapGrid.innerHTML = '';
+    if (oppScores.length) {
+      oppScores.slice(0, 3).forEach(opp => {
+        const el = document.createElement('div');
+        el.className = 'gap-card';
+        el.innerHTML = `
+          <div class="gap-topic">${escHtml(prettyLabel(opp.topic || '—'))}</div>
+          <div class="gap-score">Opportunity: ${(opp.opportunity_score || 0).toFixed(0)}/100</div>
+          <div class="gap-type">${escHtml(opp.opportunity_brief || opp.recommendation_type || '')}</div>
+          <details class="gap-expander">
+            <summary>Details</summary>
+            <div class="gap-expander-body">
+              ${opp.supporting_evidence ? `<div class="gap-detail"><strong>Evidence:</strong> ${escHtml(opp.supporting_evidence)}</div>` : ''}
+              ${opp.suggested_experiment ? `<div class="gap-detail"><strong>Suggested test:</strong> ${escHtml(opp.suggested_experiment)}</div>` : ''}
+              ${opp.signal_to_watch ? `<div class="gap-detail"><strong>Signal to watch:</strong> ${escHtml(opp.signal_to_watch)}</div>` : ''}
+            </div>
+          </details>
+        `;
+        gapGrid.appendChild(el);
+      });
+    } else {
+      gapGrid.innerHTML = '<div class="gap-empty">Use the recommendation stack to identify the first whitespace theme worth testing.</div>';
+    }
+    document.getElementById('gap-analysis').innerHTML = formatWhitespaceAnalysisHtml(data.gap_analysis || '', oppScores);
+
+    // Recommendations
+    document.getElementById('recommendations-title').innerHTML = `<span class="icon">💡</span> Strategic Recommendations for ${escHtml(targetCompany)}`;
+    const recList = document.getElementById('rec-list');
+    recList.innerHTML = '';
+    const groupedRecommendations = {
+      high: (data.recommendations || []).filter(rec => (rec.priority || '').toLowerCase() === 'high'),
+      medium: (data.recommendations || []).filter(rec => (rec.priority || '').toLowerCase() !== 'high'),
+    };
+    ['high', 'medium'].forEach(group => {
+      if (!groupedRecommendations[group].length) return;
+      const title = document.createElement('div');
+      title.className = 'rec-group-title';
+      title.textContent = group === 'high' ? 'High priority actions' : 'Medium priority actions';
+      recList.appendChild(title);
+
+      groupedRecommendations[group].forEach((rec, i) => {
+        const isHigh = group === 'high';
+        const el = document.createElement('details');
+        el.className = `rec-item ${isHigh ? 'high' : ''}`;
+        const why = rec.why_this_matters || rec.data_rationale || '';
+        const impact = rec.business_impact || rec.expected_impact || '';
+        el.innerHTML = `
+          <summary>
+            <div class="rec-num">${i + 1}</div>
+            <div class="rec-content">
+              <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.25rem;flex-wrap:wrap">
+                <div class="rec-title">${escHtml(rec.title || '')}</div>
+                <span class="rec-priority ${isHigh ? 'high' : 'medium'}">${rec.priority || 'medium'}</span>
+              </div>
+              <div class="rec-action">${escHtml(rec.action || '')}</div>
+              <div class="rec-summary-note">${escHtml(shortenText(why || impact || 'Open for evidence, KPI, and business implication.', 170))}</div>
+            </div>
+          </summary>
+          <div class="rec-body">
+            ${why ? `<div class="rec-rationale"><strong>Why this matters:</strong> ${escHtml(why)}</div>` : ''}
+            ${impact ? `<div class="rec-rationale"><strong>Business impact:</strong> ${escHtml(impact)}</div>` : ''}
+            ${rec.success_kpi ? `<div class="rec-rationale"><strong>Success KPI:</strong> ${escHtml(rec.success_kpi)}</div>` : ''}
+            ${rec.supporting_evidence ? `<div class="rec-rationale"><strong>Evidence:</strong> ${escHtml(rec.supporting_evidence)}</div>` : ''}
+          </div>
+        `;
+        if (group === 'high' && i === 0) {
+          el.setAttribute('open', '');
+        }
+        recList.appendChild(el);
+      });
+    });
+
+    // Action plan
+    renderActionPlan(data.action_plan || '', data.recommendations || []);
+
+    disableForm(false);
+    showReport();
+  }
+
+  // ── UI helpers ────────────────────────────────────────────────────
+  function showProgress() { document.getElementById('progress-section').style.display = 'block'; }
+  function hideProgress() { document.getElementById('progress-section').style.display = 'none'; }
+  function showReport()   { document.getElementById('report-section').style.display = 'block'; window.scrollTo({top: document.querySelector('main').offsetTop - 20, behavior: 'smooth'}); }
+  function hideReport()   { document.getElementById('report-section').style.display = 'none'; }
+  function showError(msg) { const b = document.getElementById('error-banner'); b.textContent = msg; b.style.display = 'block'; }
+  function hideError()    { document.getElementById('error-banner').style.display = 'none'; }
+  function disableForm(v) {
+    document.getElementById('btn-generate').disabled = v;
+    document.getElementById('btn-generate').innerHTML = v
+      ? '<span class="spinner"></span> Generating…'
+      : 'Generate Intelligence Report';
+  }
+
+  function rpiGrade(score) {
+    if (score >= 75) return 'A';
+    if (score >= 50) return 'B';
+    if (score >= 25) return 'C';
+    return 'D';
+  }
+
+  function fmtNum(n) {
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+    if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
+    return String(n);
+  }
+
+  function formatGapDays(days) {
+    if (!days || days < 1) return '<1 day';
+    return `${days.toFixed(1)} days`;
+  }
+
+  function formatEngagementRate(value) {
+    const rate = Number(value || 0);
+    if (rate <= 0) return '0.000%';
+    if (rate < 0.1) return `${rate.toFixed(3)}%`;
+    if (rate < 1) return `${rate.toFixed(2)}%`;
+    return `${rate.toFixed(2)}%`;
+  }
+
+  function formatPublishedDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function formatDuration(seconds) {
+    const total = Number(seconds || 0);
+    if (!total) return '';
+    const mins = Math.floor(total / 60);
+    const secs = total % 60;
+    return `${mins}:${String(secs).padStart(2, '0')}`;
+  }
+
+  function computeViewsPerDay(views, publishedAt) {
+    if (!publishedAt) return null;
+    const published = new Date(publishedAt);
+    if (Number.isNaN(published.getTime())) return null;
+    const diffDays = Math.max((Date.now() - published.getTime()) / 86400000, 1);
+    return views / diffDays;
+  }
+
+  function formatNarrativeHtml(text) {
+    const escaped = escHtml(String(text || ''))
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^\*\s+/gm, '• ')
+      .replace(/^\-\s+/gm, '• ');
+
+    return escaped
+      .split(/\n{2,}/)
+      .map(block => block.trim())
+      .filter(Boolean)
+      .map(block => `<p>${block.replace(/\n/g, '<br>')}</p>`)
+      .join('');
+  }
+
+  function formatWhitespaceAnalysisHtml(text, oppScores) {
+    const opportunities = Array.isArray(oppScores) ? oppScores.slice(0, 3) : [];
+    if (opportunities.length) {
+      const intro = opportunities.length === 1
+        ? 'One directional whitespace opportunity stands out in the current peer sample.'
+        : `${opportunities.length} directional whitespace opportunities stand out in the current peer sample.`;
+      const bullets = opportunities.map(opp => {
+        const topic = prettyLabel(opp.topic || 'Underserved theme');
+        const why = shortenText(opp.opportunity_brief || opp.recommendation_type || 'This appears under-covered in the current peer set.', 95);
+        const test = shortenText(opp.suggested_experiment || 'Run one focused pilot before scaling.', 90);
+        return `
+          <div class="gap-summary-item">
+            <strong>${escHtml(topic)}</strong><br>
+            ${escHtml(why)} ${opp.opportunity_score ? `(${Number(opp.opportunity_score).toFixed(0)}/100).` : ''}<br>
+            <span><strong>Try:</strong> ${escHtml(test)}</span>
+          </div>
+        `;
+      }).join('');
+      const closing = 'Treat these as directional experiments rather than guaranteed wins. Start with one focused test, watch early response, and only scale what earns repeat attention.';
+      return `
+        <div class="gap-summary">
+          <div class="gap-summary-intro">${escHtml(intro)}</div>
+          <div class="gap-summary-list">${bullets}</div>
+          <div class="gap-summary-close">${escHtml(closing)}</div>
+        </div>
+      `;
+    }
+    return formatNarrativeHtml(text || 'Use this section to identify the first whitespace theme worth testing.');
+  }
+
+  function formatExecutiveSummaryHtml(text) {
+    const stripInlineMarkdown = (value) => String(value || '')
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/__(.*?)__/g, '$1')
+      .trim();
+    const raw = String(text || '').replace(/\r/g, '').trim();
+    const normalized = raw
+      .replace(/\s+-\s+/g, '\n- ')
+      .replace(/\s+(What this means:)/gi, '\n$1');
+    const lines = normalized.split('\n').map(line => line.trim()).filter(Boolean);
+    let intro = '';
+    const bullets = [];
+    let meaning = '';
+
+    lines.forEach(line => {
+      if (!intro && !line.startsWith('- ') && !/^What this means:/i.test(line)) {
+        intro = line;
+        return;
+      }
+      if (line.startsWith('- ')) {
+        bullets.push(stripInlineMarkdown(line.slice(2).trim()));
+        return;
+      }
+      if (/^What this means:/i.test(line)) {
+        meaning = stripInlineMarkdown(line.replace(/^What this means:\s*/i, '').trim());
+        return;
+      }
+      if (!intro) {
+        intro = stripInlineMarkdown(line);
+      } else {
+        bullets.push(stripInlineMarkdown(line));
+      }
+    });
+
+    if (!intro && raw.trim()) {
+      const blocks = normalized.split(/\n{2,}/).map(block => block.trim()).filter(Boolean);
+      intro = stripInlineMarkdown(blocks[0] || 'No summary generated.');
+      if (!bullets.length && blocks.length > 1) {
+        blocks.slice(1, 5).forEach(block => bullets.push(stripInlineMarkdown(block.replace(/^[•*-]\s*/, '').trim())));
+      }
+    }
+
+    if (!meaning) {
+      meaning = bullets[bullets.length - 1] || intro || 'Use the report to pick the first growth move with the clearest business upside.';
+    }
+    if (meaning === intro && bullets.length) {
+      meaning = bullets[bullets.length - 1];
+    }
+
+    return `
+      <p class="exec-intro">${escHtml(intro || 'No summary generated.')}</p>
+      ${bullets.length ? `<div class="exec-bullets">${bullets.slice(0, 5).map(bullet => `<div class="exec-bullet">${escHtml(bullet)}</div>`).join('')}</div>` : ''}
+      <div class="exec-meaning"><strong>What this means:</strong> ${escHtml(meaning)}</div>
+    `;
+  }
+
+  function buildFunnelInsight(companies, companyData, rpiScores, targetCompany, slideInterpretations) {
+    const modelInsight = String(slideInterpretations.slide_06 || '').trim();
+    if (modelInsight) {
+      return `<strong>Strategic takeaway:</strong> ${escHtml(modelInsight)}`;
+    }
+
+    const target = companyData[targetCompany] || {};
+    const bofu = Number(target.bofu_pct || 0);
+    const mofu = Number(target.mofu_pct || 0);
+    const tofu = Number(target.tofu_pct || 0);
+    const peerBofu = companies
+      .filter(name => name !== targetCompany)
+      .map(name => Number((companyData[name] || {}).bofu_pct || 0));
+    const avgPeerBofu = peerBofu.length
+      ? peerBofu.reduce((sum, value) => sum + value, 0) / peerBofu.length
+      : 0;
+    const targetRpi = Number((rpiScores[targetCompany] || {}).rpi_score || 0);
+
+    let narrative = `${targetCompany} currently leans most heavily into consideration-stage content at ${mofu.toFixed(1)}%, with only ${bofu.toFixed(1)}% focused on proof or conversion. `;
+    if (bofu + 2 < avgPeerBofu) {
+      narrative += `That sits below the peer average of ${avgPeerBofu.toFixed(1)}% for proof-stage coverage, which may leave high-intent buyers with fewer confidence-building assets before a decision. `;
+    } else if (tofu < 15) {
+      narrative += `Awareness coverage is relatively light at ${tofu.toFixed(1)}%, which may limit how often new audiences discover the channel in the first place. `;
+    } else {
+      narrative += `The mix is directionally balanced, but the low proof share suggests the next gains may come from stronger decision-stage content rather than more mid-funnel repetition. `;
+    }
+    narrative += `The next test should be one proof-led asset tied to a clear buyer question, then compare its response against the current ${targetRpi.toFixed(1)} health-score baseline.`;
+    return `<strong>Strategic takeaway:</strong> ${escHtml(narrative)}`;
+  }
+
+  function shortenText(text, limit) {
+    const normalized = String(text || '').replace(/\s+/g, ' ').trim();
+    if (normalized.length <= limit) return normalized;
+    return `${normalized.slice(0, limit).trimEnd()}…`;
+  }
+
+  function inferVideoWhyWorked(video) {
+    const title = String(video.title || '').toLowerCase();
+    const duration = Number(video.duration_seconds || 0);
+    const viewsPerDay = computeViewsPerDay(Number(video.view_count || 0), video.published_at || '');
+
+    if (/\bhow\b|\bguide\b|\btutorial\b|\bwalkthrough\b|\bdemo\b/.test(title)) {
+      return 'The title suggests clear educational intent, which usually helps qualified viewers self-select quickly.';
+    }
+    if (/\bcase study\b|\bstory\b|\bcustomer\b|\broi\b/.test(title)) {
+      return 'The packaging suggests proof-oriented intent, which can increase trust with evaluation-stage viewers.';
+    }
+    if (duration > 0 && duration <= 180) {
+      return 'Its short runtime likely lowered viewing friction and made the topic easier to sample.';
+    }
+    if (viewsPerDay !== null && viewsPerDay > 50) {
+      return 'The video is still earning strong daily attention, which suggests the topic or packaging is resonating beyond launch day.';
+    }
+    return 'It appears to pair a clear topic with accessible packaging, which usually supports steadier discovery and response.';
+  }
+
+  function inferVideoNextMove(video) {
+    const title = String(video.title || '').toLowerCase();
+    const duration = Number(video.duration_seconds || 0);
+    if (/\bhow\b|\bguide\b|\btutorial\b|\bwalkthrough\b/.test(title)) {
+      return 'Create a follow-up explainer on the adjacent question buyers ask next.';
+    }
+    if (/\bdemo\b|\bproduct\b/.test(title)) {
+      return 'Test a proof-led variant with a customer outcome or objection-handling angle.';
+    }
+    if (duration <= 180 && duration > 0) {
+      return 'Reuse the hook in a second short explainer to see whether the pattern repeats.';
+    }
+    return 'Use this winner as a template for one closely related topic rather than changing multiple variables at once.';
+  }
+
+  function renderActionPlan(planText, recommendations) {
+    const container = document.getElementById('action-plan');
+    const phases = parseActionPlan(planText);
+    const recTitles = (recommendations || []).slice(0, 3).map(rec => rec.title).filter(Boolean);
+    const defaults = [
+      {
+        label: 'Weeks 1–2',
+        body: 'Translate the strongest recommendation into concrete briefs, tighten packaging basics, and agree on the first KPI to track.',
+        kpi: recTitles[0] || 'Lock the first strategic experiment'
+      },
+      {
+        label: 'Month 1',
+        body: 'Publish the first high-priority video, compare early views-per-day against your current baseline, and review whether the topic and format are resonating.',
+        kpi: recTitles[1] || 'Compare early views-per-day and engagement'
+      },
+      {
+        label: 'Month 2–3',
+        body: 'Scale the strongest signal into a repeatable series and remove the weakest experiment so the plan keeps getting sharper.',
+        kpi: recTitles[2] || 'Turn one winning pattern into a repeatable series'
+      },
+    ];
+    const merged = defaults.map(item => ({
+      ...item,
+      ...(phases[item.label] || {})
+    }));
+
+    container.innerHTML = merged.map((phase, index) => `
+      <details class="action-phase" ${index === 0 ? 'open' : ''}>
+        <summary>
+          <span>${phase.label}</span>
+          <span>${index === 0 ? 'Start here' : 'Open'}</span>
+        </summary>
+        <div class="action-phase-body">
+          ${escHtml(phase.body)}
+          <div class="action-phase-kpi">Track: ${escHtml(phase.kpi)}</div>
+        </div>
+      </details>
+    `).join('');
+  }
+
+  function parseActionPlan(text) {
+    const raw = String(text || '').replace(/\r/g, ' ');
+    const sections = {};
+    const specs = [
+      { label: 'Weeks 1–2', regex: /Week\s*1[–-]2:\s*(.*?)(?=Month\s*1:|Month\s*2[–-]3:|$)/i },
+      { label: 'Month 1', regex: /Month\s*1:\s*(.*?)(?=Month\s*2[–-]3:|$)/i },
+      { label: 'Month 2–3', regex: /Month\s*2[–-]3:\s*(.*)$/i },
+    ];
+    specs.forEach(spec => {
+      const match = raw.match(spec.regex);
+      if (match) {
+        const body = match[1].replace(/\s+/g, ' ').trim();
+        sections[spec.label] = {
+          body,
+          kpi: derivePlanKpi(body)
+        };
+      }
+    });
+    return sections;
+  }
+
+  function derivePlanKpi(body) {
+    const lowered = String(body || '').toLowerCase();
+    if (lowered.includes('views-per-day')) return 'Views per day';
+    if (lowered.includes('engagement')) return 'Engagement rate';
+    if (lowered.includes('cadence')) return 'Upload cadence consistency';
+    if (lowered.includes('seo') || lowered.includes('discover')) return 'Discovery score and early views';
+    return 'First-month audience response';
+  }
+
+  function prettyLabel(value) {
+    return String(value || '')
+      .split('/')
+      .map(part => part.trim())
+      .filter(Boolean)
+      .map(part => part.replace(/\b\w/g, ch => ch.toUpperCase()))
+      .join(' • ');
+  }
+
+  function escHtml(str) {
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+
+  // ── Enter key submit ──────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !document.getElementById('btn-generate').disabled) {
+      startGeneration();
+    }
+  });
+</script>
+</body>
+</html>
