@@ -92,6 +92,23 @@ Open `http://localhost:8080` in your browser.
 
 ---
 
+## Deploying on Render
+
+1. Push your code to a GitHub repository (ensure `.env` is in `.gitignore`)
+2. Go to [render.com](https://render.com) and create a new `Web Service`
+3. Connect your GitHub repo and select this project
+4. Render should detect the root `Dockerfile` automatically
+5. Add environment variables in the Render dashboard:
+   - `YOUTUBE_API_KEY`
+   - `GEMINI_API_KEY`
+   - `GROQ_API_KEY` (optional)
+   - `SERPAPI_API_KEY` (optional)
+6. Deploy and verify `/health`, `/`, report generation, and PPT download
+
+Note: generated files are written to `outputs/`, which is suitable for temporary runtime use during the assessment flow, but not for long-term persistent storage across redeploys.
+
+---
+
 ## Deploying on Railway
 
 1. Push your code to a GitHub repository (ensure `.env` is in `.gitignore`)
